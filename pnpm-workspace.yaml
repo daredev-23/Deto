@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "server"
+allowBuilds:
+  bcrypt: true
+  esbuild: true
