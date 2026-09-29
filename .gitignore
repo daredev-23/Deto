@@ -1,21 +1,74 @@
-# Dependencias (NUNCA deben ir a Git)
+# ==========================================
+# Dependencias
+# ==========================================
 node_modules/
 .pnpm-store/
+.pnpm/
 
-# Archivos de entorno y secretos
+# ==========================================
+# Variables de entorno y secretos
+# ==========================================
 .env
+.env*.local
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Carpetas de compilación / producción
+# Permitir explícitamente la plantilla de ejemplo
+!.env.example
+
+# ==========================================
+# Next.js Build y Cache
+# ==========================================
+.next/
+out/
+
+# ==========================================
+# Compilación y Artefactos de Build
+# ==========================================
 dist/
 build/
 .output/
+*.tsbuildinfo
 
-# Logs y temporales
+# ==========================================
+# TypeScript / Next.js generado
+# ==========================================
+next-env.d.ts
+
+# ==========================================
+# Bases de datos locales y temporales
+# ==========================================
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# ==========================================
+# Pruebas y Cobertura (Vitest)
+# ==========================================
+coverage/
+.vitest/
+
+# ==========================================
+# Logs
+# ==========================================
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# ==========================================
+# Sistema Operativo y Editores (IDE)
+# ==========================================
 .DS_Store
+Thumbs.db
 *.local
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.sublime-project
+*.sublime-workspace

@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  role         String        @default("BUSINESS_OWNER") // BUSINESS_OWNER, CLIENT, ADMIN
+  phone        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  businesses   Business[]
+  staffMembers StaffMember[]
+  bookings     Booking[]
+}
+
+model Business {
+  id          String             @id @default(cuid())
+  ownerId     String
+  name        String
+  slug        String             @unique
+  description String?
+  phone       String?
+  address     String?
+  timezone    String             @default("America/Lima")
+  currency    String             @default("PEN")
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  owner       User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  staffMembers StaffMember[]
+  services    Service[]
+  schedules   BusinessSchedule[]
+  bookings    Booking[]
+  payments    Payment[]
+
+  @@index([slug])
+}
+
+model StaffMember {
+  id         String          @id @default(cuid())
+  businessId String
+  userId     String?
+  name       String
+  email      String?
+  phone      String?
+  isDefault  Boolean         @default(false)
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  business   Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user       User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  schedules  StaffSchedule[]
+  bookings   Booking[]
+  services   Service[]
+
+  @@index([businessId])
+}
+
+model Service {
+  id              String        @id @default(cuid())
+  businessId      String
+  name            String
+  description     String?
+  durationMinutes Int
+  bufferMinutes   Int           @default(0)
+  priceInCents    Int
+  currency        String        @default("PEN")
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  business        Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  staffMembers    StaffMember[]
+  bookings        Booking[]
+
+  @@index([businessId])
+}
+
+model BusinessSchedule {
+  id         String   @id @default(cuid())
+  businessId String
+  dayOfWeek  Int      // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  openTime   String   // "09:00" (HH:mm)
+  closeTime  String   // "18:00" (HH:mm)
+  isClosed   Boolean  @default(false)
+
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, dayOfWeek])
+}
+
+model StaffSchedule {
+  id            String      @id @default(cuid())
+  staffMemberId String
+  dayOfWeek     Int         // 0 = Sunday, ..., 6 = Saturday
+  startTime     String      // "09:00"
+  endTime       String      // "18:00"
+  breakStart    String?     // "13:00"
+  breakEnd      String?     // "14:00"
+  isWorking     Boolean     @default(true)
+
+  staffMember   StaffMember @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([staffMemberId, dayOfWeek])
+}
+
+model Booking {
+  id                 String       @id @default(cuid())
+  businessId         String
+  serviceId          String
+  staffMemberId      String
+  customerId         String?
+  customerName       String
+  customerEmail      String
+  customerPhone      String?
+  notes              String?
+  startTime          DateTime
+  endTime            DateTime
+  status             String       @default("CONFIRMED") // PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
+  paymentMethod      String       @default("IN_PERSON") // IN_PERSON, STRIPE
+  paymentStatus      String       @default("PENDING")   // PENDING, PAID, REFUNDED
+  stripeSessionId    String?      @unique
+  totalAmountInCents Int
+  expiresAt          DateTime?    // Hold time for pending reservations
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  business           Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  service            Service      @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  staffMember        StaffMember  @relation(fields: [staffMemberId], references: [id], onDelete: Restrict)
+  customer           User?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  payment            Payment?
+
+  @@index([businessId, startTime])
+  @@index([staffMemberId, startTime, endTime])
+  @@index([status, expiresAt])
+}
+
+model Payment {
+  id                       String    @id @default(cuid())
+  bookingId                String    @unique
+  businessId               String
+  stripePaymentIntentId    String?   @unique
+  stripeCheckoutSessionId  String?   @unique
+  amountInCents            Int
+  currency                 String    @default("PEN")
+  status                   String    // PENDING, SUCCEEDED, FAILED, REFUNDED
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  booking                  Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  business                 Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+}
