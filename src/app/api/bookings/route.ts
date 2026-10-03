@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createBooking } from "@/services/booking.service";
-import { createStripeCheckoutSession } from "@/services/payment.service";
-import { isStripeConfigured } from "@/lib/stripe";
 import { sendBookingConfirmationEmail } from "@/services/email.service";
-import { prisma } from "@/lib/db";
-
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -23,9 +19,6 @@ export async function POST(req: NextRequest) {
       customerPhone,
       notes,
       startTime: startTimeStr,
-      paymentMethod = "IN_PERSON",
-      successUrl,
-      cancelUrl,
     } = body;
 
     if (!businessId || !serviceId || !customerName || !customerEmail || !startTimeStr) {
@@ -42,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     const customerId = authenticatedUser?.id ? authenticatedUser.id : undefined;
 
-    // Attempt transactional booking creation
+    // Create booking atomically
     const result = await createBooking({
       businessId,
       serviceId,
@@ -53,7 +46,7 @@ export async function POST(req: NextRequest) {
       customerPhone,
       notes,
       startTime,
-      paymentMethod,
+      paymentMethod: "IN_PERSON",
     });
 
     if (!result.success) {
@@ -63,73 +56,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.message }, { status: 400 });
     }
 
-    let booking = result.booking;
+    const booking = result.booking;
 
-    // If Stripe payment is requested
-    if (paymentMethod === "STRIPE") {
-      const stripeReady = isStripeConfigured();
-
-      if (!stripeReady) {
-        // MODO DEMO / SIMULACIÓN: Stripe no tiene claves reales configuradas
-        booking = await prisma.booking.update({
-          where: { id: booking.id },
-          data: {
-            status: "CONFIRMED",
-            paymentMethod: "STRIPE (Modo Simulación)",
-            paymentStatus: "PAID",
-            expiresAt: null,
-          },
-          include: {
-            business: true,
-            service: true,
-            staffMember: true,
-          },
-        });
-
-        // Enviar notificación por correo
-        sendBookingConfirmationEmail(booking).catch((err) =>
-          console.error("Error enviando email:", err)
-        );
-
-        return NextResponse.json({
-          success: true,
-          booking,
-          isSimulatedPayment: true,
-          notice: "Pago confirmado bajo Modo Demo / Simulación de Stripe.",
-        });
-      }
-
-      // Stripe en modo real con claves válidas
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-      const finalSuccessUrl =
-        successUrl ||
-        `${appUrl}/b/${booking.business.slug}/booking-success?bookingId=${booking.id}&payment=success`;
-      const finalCancelUrl =
-        cancelUrl || `${appUrl}/b/${booking.business.slug}/book/${serviceId}?cancelled=true`;
-
-      try {
-        const stripeSession = await createStripeCheckoutSession({
-          bookingId: booking.id,
-          successUrl: finalSuccessUrl,
-          cancelUrl: finalCancelUrl,
-        });
-
-        return NextResponse.json({
-          success: true,
-          booking,
-          checkoutUrl: stripeSession.url,
-        });
-      } catch (stripeErr: any) {
-        console.error("Error creating Stripe session:", stripeErr);
-        return NextResponse.json({
-          success: true,
-          booking,
-          warning: "No se pudo iniciar la pasarela de Stripe. La reserva se mantendrá en espera.",
-        });
-      }
-    }
-
-    // Default flow: confirmed immediately with in-person payment
+    // Send confirmation email asynchronously (with console fallback)
     sendBookingConfirmationEmail(booking).catch((err) =>
       console.error("Error enviando email de confirmación:", err)
     );

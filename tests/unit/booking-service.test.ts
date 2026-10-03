@@ -81,38 +81,6 @@ describe("Booking Service - Atomic Creation & Conflict Detection", () => {
     expect(result.booking.expiresAt).toBeNull();
   });
 
-  it("creates a PENDING booking with expiresAt when paymentMethod is STRIPE", async () => {
-    const mockTx = {
-      service: {
-        findUnique: vi.fn().mockResolvedValue(mockService),
-      },
-      staffMember: {
-        findFirst: vi.fn().mockResolvedValue(mockStaff),
-      },
-      booking: {
-        findFirst: vi.fn().mockResolvedValue(null),
-        create: vi.fn().mockImplementation(({ data }) => Promise.resolve({ id: "book-stripe", ...data })),
-      },
-    };
-
-    (prisma.$transaction as any).mockImplementation(async (cb: any) => {
-      return await cb(mockTx);
-    });
-
-    const result = await createBooking({
-      businessId: "biz-1",
-      serviceId: "service-1",
-      customerName: "María López",
-      customerEmail: "maria@test.com",
-      startTime: baseTime,
-      paymentMethod: "STRIPE",
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.booking.status).toBe("PENDING");
-    expect(result.booking.paymentMethod).toBe("STRIPE");
-    expect(result.booking.expiresAt).not.toBeNull();
-  });
 
   it("rejects booking with SLOT_OCCUPIED if a conflicting booking exists", async () => {
     const conflictingBooking = {

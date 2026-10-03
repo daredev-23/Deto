@@ -31,5 +31,5 @@ export default async function DashboardServicesPage() {
     isActive: s.isActive,
   }));
 
-  return <ServicesManager initialServices={services} />;
+  return <ServicesManager initialServices={services} businessId={business.id} />;
 }

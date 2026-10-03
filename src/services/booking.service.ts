@@ -11,7 +11,7 @@ export interface CreateBookingInput {
   customerPhone?: string;
   notes?: string;
   startTime: Date;
-  paymentMethod?: "IN_PERSON" | "STRIPE";
+  paymentMethod?: "IN_PERSON";
 }
 
 export interface BookingResult {
@@ -24,7 +24,6 @@ export interface BookingResult {
 /**
  * Creates a booking atomically within a database transaction.
  * Guarantees no double-booking even under concurrent requests.
- * Evaluates internal expiresAt to ignore expired holds.
  */
 export async function createBooking(input: CreateBookingInput): Promise<BookingResult> {
   const {
@@ -67,19 +66,12 @@ export async function createBooking(input: CreateBookingInput): Promise<BookingR
       const totalOccupiedEnd = new Date(endTime.getTime() + service.bufferMinutes * 60 * 1000);
 
       // 4. Concurrency check: find any active, overlapping booking for this staff member
-      const now = new Date();
       const existingConflict = await tx.booking.findFirst({
         where: {
           staffMemberId,
           startTime: { lt: totalOccupiedEnd },
           endTime: { gt: startTime },
-          OR: [
-            { status: { in: ["CONFIRMED", "COMPLETED"] } },
-            {
-              status: "PENDING",
-              expiresAt: { gt: now }, // Deto's internal check: only blocks if NOT expired
-            },
-          ],
+          status: { in: ["CONFIRMED", "COMPLETED"] },
         },
       });
 
@@ -91,12 +83,7 @@ export async function createBooking(input: CreateBookingInput): Promise<BookingR
         };
       }
 
-      // 5. Determine booking status based on payment method
-      const isStripe = paymentMethod === "STRIPE";
-      const status = isStripe ? "PENDING" : "CONFIRMED";
-      const expiresAt = isStripe ? new Date(now.getTime() + 15 * 60 * 1000) : null;
-
-      // 6. Create booking
+      // 5. Create booking confirmed directly
       const newBooking = await tx.booking.create({
         data: {
           businessId,
@@ -109,11 +96,11 @@ export async function createBooking(input: CreateBookingInput): Promise<BookingR
           notes,
           startTime,
           endTime,
-          status,
+          status: "CONFIRMED",
           paymentMethod,
           paymentStatus: "PENDING",
           totalAmountInCents: service.priceInCents,
-          expiresAt,
+          expiresAt: null,
         },
         include: {
           service: true,

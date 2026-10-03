@@ -63,94 +63,116 @@ function RegisterClientForm() {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-16">
-      <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-2">
-          Crear Cuenta de Cliente
-        </h1>
-        <p className="text-sm text-gray-600 mb-6">
-          Registra tu cuenta para agendar citas, consultar tu historial y recibir confirmaciones
-        </p>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-xs text-red-700">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4 text-sm">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Nombre Completo *</label>
-            <input
-              type="text"
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900"
-              placeholder="Ej. Ana Martínez"
-            />
+    <div className="min-h-screen bg-transparent py-12 md:py-16">
+      <div className="max-w-md mx-auto px-4">
+        <div className="liquid-glass p-8 sm:p-10 rounded-3xl border border-white/80 shadow-2xl shadow-violet-900/10">
+          <div className="mb-6">
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold liquid-glass-tint text-violet-950 border border-violet-200/80 mb-2 shadow-2xs">
+              Cuenta Personal
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950">
+              Crear Cuenta de Cliente
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-600 mt-1">
+              Registra tu cuenta para agendar citas, ver tu historial y recibir confirmaciones
+            </p>
           </div>
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Correo Electrónico *</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900"
-              placeholder="tu@correo.com"
-            />
-          </div>
+          {error && (
+            <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2">
+              <svg className="w-4 h-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Teléfono (opcional)</label>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900"
-              placeholder="+51 987 654 321"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4 text-sm">
+            <div>
+              <label className="block text-zinc-800 text-xs font-semibold mb-1">Nombre Completo *</label>
+              <input
+                type="text"
+                required
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full px-4 py-3 liquid-glass rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-500 shadow-2xs transition-all"
+                placeholder="Ej. Ana Martínez"
+              />
+            </div>
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Contraseña *</label>
-            <input
-              type="password"
-              required
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900"
-              placeholder="Mínimo 6 caracteres"
-              minLength={6}
-            />
-          </div>
+            <div>
+              <label className="block text-zinc-800 text-xs font-semibold mb-1">Correo Electrónico *</label>
+              <input
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full px-4 py-3 liquid-glass rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-500 shadow-2xs transition-all"
+                placeholder="tu@correo.com"
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-gray-900 text-white font-medium rounded-md hover:bg-gray-800 disabled:opacity-50 text-sm transition-all"
-          >
-            {loading ? "Creando cuenta..." : "Crear Cuenta"}
-          </button>
-        </form>
+            <div>
+              <label className="block text-zinc-800 text-xs font-semibold mb-1">Teléfono (opcional)</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                className="w-full px-4 py-3 liquid-glass rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-500 shadow-2xs transition-all"
+                placeholder="+51 987 654 321"
+              />
+            </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center text-xs text-gray-600 space-y-2">
-          <div>
-            ¿Ya tienes cuenta?{" "}
-            <Link
-              href={callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"}
-              className="text-gray-900 font-semibold underline"
+            <div>
+              <label className="block text-zinc-800 text-xs font-semibold mb-1">Contraseña *</label>
+              <input
+                type="password"
+                required
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full px-4 py-3 liquid-glass rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-500 shadow-2xs transition-all"
+                placeholder="Mínimo 6 caracteres"
+                minLength={6}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-liquid-gradient w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 mt-2 text-white font-semibold rounded-xl disabled:opacity-50 text-sm shadow-md shadow-violet-600/25 transition-all active:scale-[0.98] cursor-pointer"
             >
-              Inicia sesión aquí
-            </Link>
-          </div>
-          <div className="text-gray-500">
-            ¿Tienes un negocio?{" "}
-            <Link href="/register" className="text-gray-800 font-semibold underline">
-              Regístralo como negocio
-            </Link>
+              {loading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Creando cuenta...</span>
+                </>
+              ) : (
+                <>
+                  <span>Crear Cuenta</span>
+                  <svg className="w-4 h-4 text-violet-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 pt-5 border-t border-zinc-200/60 text-center text-xs text-zinc-600 space-y-2">
+            <div>
+              ¿Ya tienes cuenta?{" "}
+              <Link
+                href={callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"}
+                className="text-violet-700 font-semibold underline hover:text-violet-900"
+              >
+                Inicia sesión aquí
+              </Link>
+            </div>
+            <div className="text-zinc-500">
+              ¿Tienes un negocio?{" "}
+              <Link href="/register" className="text-zinc-800 font-semibold underline hover:text-violet-700">
+                Regístralo como negocio
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -162,7 +184,7 @@ export default function RegisterClientPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-md mx-auto px-4 py-16 text-center text-sm text-gray-500">
+        <div className="max-w-md mx-auto px-4 py-16 text-center text-sm text-zinc-500">
           Cargando registro de cliente...
         </div>
       }
